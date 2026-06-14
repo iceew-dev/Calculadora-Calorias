@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de Calorias</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3350;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.12);
+      --danger: #f87171;
+      --danger-dim: rgba(248, 113, 113, 0.12);
+      --warning: #fbbf24;
+      --text: #e8eaf0;
+      --text-muted: #7a80a0;
+      --text-dim: #4a5070;
+      --radius: 10px;
+      --mono: 'DM Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── Layout ── */
+    .shell {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 28px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 8px 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 8px;
+    }
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .logo-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .logo-sub { font-size: 11px; color: var(--text-muted); font-weight: 400; }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      padding: 12px 8px 4px;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-btn:hover { background: var(--surface2); color: var(--text); }
+    .nav-btn.active { background: var(--accent-dim); color: var(--accent); }
+    .nav-btn .icon { font-size: 15px; width: 20px; text-align: center; }
+
+    /* ── Main ── */
+    .main {
+      padding: 36px 40px;
+      max-width: 760px;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .page-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .page-sub {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 18px;
+    }
+
+    /* ── Forms ── */
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .field-row.single { grid-template-columns: 1fr; }
+    .field-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+
+    .field { display: flex; flex-direction: column; gap: 5px; }
+
+    label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    input, select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      padding: 9px 12px;
+      outline: none;
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+    input:focus, select:focus { border-color: var(--accent); }
+    select option { background: var(--surface2); }
+
+    /* ── Buttons ── */
+    .btn {
+      padding: 10px 20px;
+      border-radius: 7px;
+      border: none;
+      font-size: 13.5px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-primary { background: var(--accent); color: #0a1a0f; }
+    .btn-primary:hover:not(:disabled) { opacity: 0.88; }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .btn-ghost:hover { border-color: var(--text-muted); color: var(--text); }
+
+    .btn-row { display: flex; gap: 10px; margin-top: 18px; }
+
+    /* ── Feedback ── */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      padding: 13px 18px;
+      border-radius: 9px;
+      font-size: 13.5px;
+      font-weight: 500;
+      max-width: 320px;
+      z-index: 1000;
+      transform: translateY(0);
+      animation: slideUp 0.25s ease;
+      border: 1px solid;
+    }
+    .toast.success { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+    .toast.error   { background: var(--danger-dim); border-color: var(--danger); color: var(--danger); }
+    .toast.hidden  { display: none; }
+
+    @keyframes slideUp {
+      from { transform: translateY(12px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    /* ── Info chip ── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .info-chip {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .info-chip-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; }
+    .info-chip-val {
+      font-family: var(--mono);
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    /* ── Extrato ── */
+    .filter-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+
+    .tx-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .tx-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+
+    .tx-badge {
+      width: 34px; height: 34px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .tx-badge.alimento  { background: rgba(251,191,36,0.15); }
+    .tx-badge.exercicio { background: rgba(74,222,128,0.15); }
+
+    .tx-info { flex: 1; min-width: 0; }
+    .tx-desc { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tx-date { font-size: 12px; color: var(--text-muted); font-family: var(--mono); }
+
+    .tx-cal {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 500;
+      text-align: right;
+    }
+    .tx-cal.gain { color: var(--warning); }
+    .tx-cal.loss { color: var(--accent); }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 0;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+    .empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+    /* ── Saldo ── */
+    .saldo-big {
+      font-family: var(--mono);
+      font-size: 52px;
+      font-weight: 500;
+      line-height: 1;
+      margin: 16px 0 6px;
+    }
+    .saldo-big.positive { color: var(--accent); }
+    .saldo-big.negative { color: var(--danger); }
+    .saldo-label { font-size: 13px; color: var(--text-muted); }
+
+    .saldo-breakdown {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 22px;
+    }
+    .breakdown-card {
+      border-radius: 8px;
+      padding: 16px;
+      border: 1px solid;
+    }
+    .breakdown-card.gain { background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.25); }
+    .breakdown-card.loss { background: rgba(74,222,128,0.08); border-color: rgba(74,222,128,0.25); }
+    .breakdown-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+    .breakdown-val { font-family: var(--mono); font-size: 22px; font-weight: 500; }
+    .breakdown-card.gain .breakdown-val { color: var(--warning); }
+    .breakdown-card.loss .breakdown-val { color: var(--accent); }
+
+    /* ── Server config ── */
+    .server-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 40px;
+      font-size: 12.5px;
+    }
+    .server-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      flex-shrink: 0;
+    }
+    .server-dot.ok { background: var(--accent); }
+    .server-url {
+      font-family: var(--mono);
+      color: var(--text-muted);
+      flex: 1;
+    }
+    .server-url input {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      font-size: 12.5px;
+      padding: 0;
+      width: 260px;
+    }
+    .server-url input:focus { color: var(--text); outline: none; }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Responsive ── */
+    @media (max-width: 700px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; flex-direction: row; flex-wrap: wrap; padding: 14px; border-right: none; border-bottom: 1px solid var(--border); }
+      .logo { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+      .nav-label { display: none; }
+      .main { padding: 20px 16px; }
+      .info-grid { grid-template-columns: 1fr 1fr; }
+      .saldo-breakdown { grid-template-columns: 1fr; }
+      .field-row { grid-template-columns: 1fr; }
+      .filter-row { grid-template-columns: 1fr 1fr; }
+      .filter-row .btn { grid-column: 1/-1; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="toast" class="toast hidden"></div>
+
+<div class="server-bar">
+  <div id="serverDot" class="server-dot"></div>
+  <span class="server-url">
+    API: <input id="serverUrl" type="text" value="http://localhost:3000" placeholder="http://localhost:3000" />
+  </span>
+  <button class="btn btn-ghost" style="padding:5px 12px;font-size:12px" onclick="testServer()">Testar</button>
+</div>
+
+<div class="shell">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">🔥</div>
+      <div class="logo-text">Calórico<span class="logo-sub"><br>Balanço calórico</span></div>
+    </div>
+
+    <span class="nav-label">Conta</span>
+    <button class="nav-btn active" onclick="showPage('usuario')">
+      <span class="icon">👤</span> Dados Pessoais
+    </button>
+
+    <span class="nav-label">Registrar</span>
+    <button class="nav-btn" onclick="showPage('alimento')">
+      <span class="icon">🍽️</span> Alimento
+    </button>
+    <button class="nav-btn" onclick="showPage('exercicio')">
+      <span class="icon">🏃</span> Atividade Física
+    </button>
+
+    <span class="nav-label">Consultar</span>
+    <button class="nav-btn" onclick="showPage('extrato')">
+      <span class="icon">📋</span> Extrato
+    </button>
+    <button class="nav-btn" onclick="showPage('saldo')">
+      <span class="icon">⚖️</span> Saldo
+    </button>
+  </nav>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- ── Página: Dados Pessoais ── -->
+    <div id="page-usuario" class="page active">
+      <div class="page-title">Dados Pessoais</div>
+      <div class="page-sub">Cadastre ou atualize seu perfil para cálculos personalizados.</div>
+
+      <div class="card">
+        <div class="card-title">Seu perfil</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Altura (cm)</label>
+            <input id="u-altura" type="number" min="50" max="250" placeholder="Ex: 175" />
+          </div>
+          <div class="field">
+            <label>Peso (kg)</label>
+            <input id="u-peso" type="number" min="1" max="500" step="0.1" placeholder="Ex: 70.5" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Idade</label>
+            <input id="u-idade" type="number" min="1" max="130" placeholder="Ex: 25" />
+          </div>
+          <div class="field">
+            <label>Sexo</label>
+            <select id="u-sexo">
+              <option value="">Selecione…</option>
+              <option value="M">Masculino</option>
+              <option value="F">Feminino</option>
+            </select>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="salvarUsuario()">Salvar perfil</button>
+          <button class="btn btn-ghost" onclick="consultarUsuario()">Consultar dados</button>
+        </div>
+      </div>
+
+      <div id="usuario-info" style="display:none" class="card">
+        <div class="card-title">Dados cadastrados</div>
+        <div class="info-grid" id="usuario-chips"></div>
+      </div>
+    </div>
+
+    <!-- ── Página: Alimento ── -->
+    <div id="page-alimento" class="page">
+      <div class="page-title">Registrar Alimento</div>
+      <div class="page-sub">Informe o alimento consumido; a API busca as calorias automaticamente.</div>
+
+      <div class="card">
+        <div class="card-title">Consumo</div>
+        <div class="field-row single">
+          <div class="field">
+            <label>Alimento</label>
+            <input id="a-desc" type="text" placeholder="Ex: banana, arroz, frango grelhado…" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Data</label>
+            <input id="a-data" type="date" />
+          </div>
+          <div class="field">
+            <label>Quantidade consumida</label>
+            <input id="a-qtd" type="text" placeholder="Ex: 1 unidade, 200g…" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="registrarAlimento()">Registrar</button>
+        </div>
+      </div>
+
+      <div id="alimento-resultado" style="display:none" class="card">
+        <div class="card-title">Resultado</div>
+        <div id="alimento-msg" style="font-size:14px; color:var(--text-muted)"></div>
+      </div>
+    </div>
+
+    <!-- ── Página: Exercício ── -->
+    <div id="page-exercicio" class="page">
+      <div class="page-title">Registrar Atividade Física</div>
+      <div class="page-sub">Informe a atividade realizada; a API calcula as calorias gastas.</div>
+
+      <div class="card">
+        <div class="card-title">Atividade</div>
+        <div class="field-row single">
+          <div class="field">
+            <label>Atividade</label>
+            <input id="e-desc" type="text" placeholder="Ex: running, cycling, swimming…" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Data</label>
+            <input id="e-data" type="date" />
+          </div>
+          <div class="field">
+            <label>Duração</label>
+            <input id="e-duracao" type="text" placeholder="Ex: 30 minutos, 1 hora…" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="registrarExercicio()">Registrar</button>
+        </div>
+      </div>
+
+      <div id="exercicio-resultado" style="display:none" class="card">
+        <div class="card-title">Resultado</div>
+        <div id="exercicio-msg" style="font-size:14px; color:var(--text-muted)"></div>
+      </div>
+    </div>
+
+    <!-- ── Página: Extrato ── -->
+    <div id="page-extrato" class="page">
+      <div class="page-title">Extrato de Transações</div>
+      <div class="page-sub">Filtre por período para ver alimentos e atividades registradas.</div>
+
+      <div class="filter-row">
+        <div class="field">
+          <label>De</label>
+          <input id="ex-de" type="date" />
+        </div>
+        <div class="field">
+          <label>Até</label>
+          <input id="ex-ate" type="date" />
+        </div>
+        <button class="btn btn-primary" onclick="carregarExtrato()">Filtrar</button>
+      </div>
+
+      <div id="extrato-list" class="tx-list">
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          Clique em "Filtrar" para carregar o extrato.
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Página: Saldo ── -->
+    <div id="page-saldo" class="page">
+      <div class="page-title">Saldo de Calorias</div>
+      <div class="page-sub">Calorias consumidas menos calorias gastas no período selecionado.</div>
+
+      <div class="card" style="margin-bottom:16px">
+        <div class="filter-row" style="margin-bottom:0">
+          <div class="field">
+            <label>De</label>
+            <input id="s-de" type="date" />
+          </div>
+          <div class="field">
+            <label>Até</label>
+            <input id="s-ate" type="date" />
+          </div>
+          <button class="btn btn-primary" onclick="carregarSaldo()">Calcular</button>
+        </div>
+      </div>
+
+      <div id="saldo-result" style="display:none" class="card">
+        <div class="card-title">Balanço do período</div>
+        <div class="saldo-label">Saldo calórico</div>
+        <div id="saldo-val" class="saldo-big">—</div>
+        <div id="saldo-desc" class="saldo-label"></div>
+        <div class="saldo-breakdown">
+          <div class="breakdown-card gain">
+            <div class="breakdown-label">🍽️ Calorias consumidas</div>
+            <div class="breakdown-val" id="saldo-consumido">—</div>
+          </div>
+          <div class="breakdown-card loss">
+            <div class="breakdown-label">🏃 Calorias gastas</div>
+            <div class="breakdown-val" id="saldo-gasto">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // ── Config ──────────────────────────────────────────────────────────────────
+  const getBase = () => document.getElementById('serverUrl').value.replace(/\/$/, '');
+
+  async function api(method, path, body) {
+    const opts = {
+      method,
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    };
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(getBase() + path, opts);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  }
+
+  // ── Toast ────────────────────────────────────────────────────────────────────
+  let toastTimer;
+  function toast(msg, type = 'success') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `toast ${type}`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.className = 'toast hidden', 4000);
+  }
+
+  // ── Nav ──────────────────────────────────────────────────────────────────────
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    event.currentTarget.classList.add('active');
+  }
+
+  // ── Server test ──────────────────────────────────────────────────────────────
+  async function testServer() {
+    const dot = document.getElementById('serverDot');
+    dot.style.background = 'var(--warning)';
+    try {
+      await fetch(getBase() + '/extrato');
+      dot.className = 'server-dot ok';
+      toast('Servidor acessível ✓');
+    } catch {
+      dot.className = 'server-dot';
+      toast('Servidor inacessível — verifique o endereço e se a API está rodando.', 'error');
+    }
+  }
+
+  // ── Defaults: hoje ────────────────────────────────────────────────────────────
+  function hoje() { return new Date().toISOString().slice(0, 10); }
+  document.getElementById('a-data').value = hoje();
+  document.getElementById('e-data').value = hoje();
+  // Extrato: últimos 30 dias
+  const d30 = new Date(); d30.setDate(d30.getDate() - 30);
+  document.getElementById('ex-de').value = d30.toISOString().slice(0, 10);
+  document.getElementById('ex-ate').value = hoje();
+  document.getElementById('s-de').value = d30.toISOString().slice(0, 10);
+  document.getElementById('s-ate').value = hoje();
+
+  // ── Spinner helper ────────────────────────────────────────────────────────────
+  function setLoading(btn, yes) {
+    if (yes) {
+      btn._orig = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner"></span> Aguarde…`;
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = btn._orig;
+    }
+  }
+
+  // ── 1. Usuário ─────────────────────────────────────────────────────────────
+  async function salvarUsuario() {
+    const altura = parseFloat(document.getElementById('u-altura').value);
+    const peso   = parseFloat(document.getElementById('u-peso').value);
+    const idade  = parseInt(document.getElementById('u-idade').value);
+    const sexo   = document.getElementById('u-sexo').value;
+
+    if (!altura || !peso || !idade || !sexo) {
+      toast('Preencha todos os campos antes de salvar.', 'error'); return;
+    }
+
+    const btn = event.currentTarget;
+    setLoading(btn, true);
+    try {
+      const res = await api('POST', '/usuario', { altura, peso, idade, sexo });
+      toast(res.mensagem || 'Usuário salvo!');
+    } catch (e) {
+      toast('Erro ao salvar: ' + e.message, 'error');
+    } finally { setLoading(btn, false); }
+  }
+
+  async function consultarUsuario() {
+    try {
+      const usuario = await api('GET', '/usuario');
+
+      if (!usuario || Object.keys(usuario).length === 0) {
+        toast('Nenhum dado de usuário cadastrado no servidor.', 'error');
+        return;
+      }
+
+      const map = {
+        'Altura': usuario.altura ? usuario.altura + ' cm' : '—',
+        'Peso':   usuario.peso   ? usuario.peso   + ' kg' : '—',
+        'Idade':  usuario.idade  ? usuario.idade  + ' anos' : '—',
+        'Sexo':   usuario.sexo === 'M' ? 'Masculino' : usuario.sexo === 'F' ? 'Feminino' : '—',
+      };
+
+      document.getElementById('usuario-chips').innerHTML =
+              Object.entries(map).map(([k, v]) =>
+                      `<div class="info-chip"><div class="info-chip-label">${k}</div><div class="info-chip-val">${v}</div></div>`
+              ).join('');
+
+      document.getElementById('usuario-info').style.display = 'block';
+    } catch (e) {
+      toast('Erro ao consultar dados do servidor: ' + e.message, 'error');
+    }
+  }
+
+  // ── 2. Alimento ──────────────────────────────────────────────────────────────
+  async function registrarAlimento() {
+    const descricao  = document.getElementById('a-desc').value.trim();
+    const data       = document.getElementById('a-data').value;
+    const quantidade = document.getElementById('a-qtd').value.trim();
+
+    if (!descricao || !data) {
+      toast('Informe o alimento e a data.', 'error'); return;
+    }
+
+    const btn = event.currentTarget;
+    setLoading(btn, true);
+    try {
+      const res = await api('POST', '/alimentos', { descricao, data, quantidade });
+      document.getElementById('alimento-resultado').style.display = 'block';
+      document.getElementById('alimento-msg').innerHTML =
+        `<strong style="color:var(--accent)">${res.mensagem}</strong><br>` +
+        `Calorias identificadas: <span style="font-family:var(--mono);color:var(--warning)">${res.calorias ?? '—'} kcal</span>`;
+      toast(res.mensagem || 'Alimento registrado!');
+      document.getElementById('a-desc').value = '';
+      document.getElementById('a-qtd').value = '';
+    } catch (e) {
+      toast('Erro ao registrar: ' + e.message, 'error');
+    } finally { setLoading(btn, false); }
+  }
+
+  // ── 3. Exercício ─────────────────────────────────────────────────────────────
+  async function registrarExercicio() {
+    const descricao = document.getElementById('e-desc').value.trim();
+    const data      = document.getElementById('e-data').value;
+    const duracao   = document.getElementById('e-duracao').value.trim();
+
+    if (!descricao || !data) {
+      toast('Informe a atividade e a data.', 'error'); return;
+    }
+
+    const btn = event.currentTarget;
+    setLoading(btn, true);
+    try {
+      const res = await api('POST', '/exercicios', { descricao, data, duracao });
+      document.getElementById('exercicio-resultado').style.display = 'block';
+      document.getElementById('exercicio-msg').innerHTML =
+        `<strong style="color:var(--accent)">${res.mensagem}</strong><br>` +
+        `Calorias gastas: <span style="font-family:var(--mono);color:var(--accent)">${res['calorias-gastas'] ?? '—'} kcal</span>`;
+      toast(res.mensagem || 'Exercício registrado!');
+      document.getElementById('e-desc').value = '';
+      document.getElementById('e-duracao').value = '';
+    } catch (e) {
+      toast('Erro ao registrar: ' + e.message, 'error');
+    } finally { setLoading(btn, false); }
+  }
+
+  // ── 4. Extrato ───────────────────────────────────────────────────────────────
+  function filtrarPorPeriodo(transacoes, de, ate) {
+    if (!de && !ate) return transacoes;
+    return transacoes.filter(t => {
+      if (!t.data) return true;
+      const d = t.data.slice(0, 10);
+      if (de && d < de) return false;
+      if (ate && d > ate) return false;
+      return true;
+    });
+  }
+
+  async function carregarExtrato() {
+    const de  = document.getElementById('ex-de').value;
+    const ate = document.getElementById('ex-ate').value;
+
+    const btn = event.currentTarget;
+    setLoading(btn, true);
+    try {
+      const res  = await api('GET', '/extrato');
+      const txs  = filtrarPorPeriodo(res.extrato || [], de, ate);
+      const list = document.getElementById('extrato-list');
+
+      if (!txs.length) {
+        list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>Nenhuma transação no período selecionado.</div>`;
+      } else {
+        list.innerHTML = txs.map(t => {
+          const tipo    = String(t.tipo || '').replace(':', '');
+          const isAlim  = tipo === 'alimento';
+          const icon    = isAlim ? '🍽️' : '🏃';
+          const calSign = isAlim ? `+${t.calorias ?? '?'}` : `−${t.calorias ?? '?'}`;
+          const calCls  = isAlim ? 'gain' : 'loss';
+          return `
+            <div class="tx-item">
+              <div class="tx-badge ${tipo}">${icon}</div>
+              <div class="tx-info">
+                <div class="tx-desc">${t.descricao ?? '—'}</div>
+                <div class="tx-date">${t.data ?? '—'}</div>
+              </div>
+              <div class="tx-cal ${calCls}">${calSign} kcal</div>
+            </div>`;
+        }).join('');
+      }
+    } catch (e) {
+      toast('Erro ao carregar extrato: ' + e.message, 'error');
+    } finally { setLoading(btn, false); }
+  }
+
+  // ── 5. Saldo ─────────────────────────────────────────────────────────────────
+  async function carregarSaldo() {
+    const de  = document.getElementById('s-de').value;
+    const ate = document.getElementById('s-ate').value;
+
+    const btn = event.currentTarget;
+    setLoading(btn, true);
+    try {
+      const [saldoRes, extratoRes] = await Promise.all([
+        api('GET', '/saldo'),
+        api('GET', '/extrato'),
+      ]);
+
+      const txs      = filtrarPorPeriodo(extratoRes.extrato || [], de, ate);
+      let consumido  = 0, gasto = 0;
+      txs.forEach(t => {
+        const tipo = String(t.tipo || '').replace(':', '');
+        if (tipo === 'alimento') consumido += (t.calorias || 0);
+        else                     gasto     += (t.calorias || 0);
+      });
+      const saldo = consumido - gasto;
+
+      document.getElementById('saldo-result').style.display = 'block';
+      const valEl  = document.getElementById('saldo-val');
+      valEl.textContent  = (saldo >= 0 ? '+' : '') + saldo + ' kcal';
+      valEl.className    = 'saldo-big ' + (saldo >= 0 ? 'positive' : 'negative');
+
+      document.getElementById('saldo-desc').textContent =
+        saldo > 0
+          ? 'Você consumiu mais calorias do que gastou no período.'
+          : saldo < 0
+          ? 'Você gastou mais calorias do que consumiu no período.'
+          : 'Balanço neutro no período.';
+
+      document.getElementById('saldo-consumido').textContent = '+' + consumido + ' kcal';
+      document.getElementById('saldo-gasto').textContent     = '−' + gasto     + ' kcal';
+
+    } catch (e) {
+      toast('Erro ao calcular saldo: ' + e.message, 'error');
+    } finally { setLoading(btn, false); }
+  }
+</script>
+</body>
+</html>
