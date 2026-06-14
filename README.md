@@ -31,7 +31,7 @@ Terminal 1 — subir a API (Back-end):
 Terminal 2 — servir o Front-end:
 
 * cd Calculadora-calorias/Front-end
-* python3 -m http.server 8080
+* python3 -m http.server 8080 (dependendo da versão do python basta tirar o 3)
 
 Depois é só acessar no navegador:
 http://localhost:8080/Interface calculadora.html
