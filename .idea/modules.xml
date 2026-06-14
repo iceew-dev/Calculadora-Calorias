@@ -2,8 +2,12 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+<<<<<<< HEAD
       <module fileurl="file://$PROJECT_DIR$/.idea/Calculadora-calorias.iml" filepath="$PROJECT_DIR$/.idea/Calculadora-calorias.iml" />
       <module fileurl="file://$PROJECT_DIR$/Back-end/api-calorias.iml" filepath="$PROJECT_DIR$/Back-end/api-calorias.iml" />
+=======
+      <module fileurl="file://$PROJECT_DIR$/api-calorias.iml" filepath="$PROJECT_DIR$/api-calorias.iml" />
+>>>>>>> b5988586973ade33a7b7d8bd417dc0feca09ed4a
     </modules>
   </component>
 </project>

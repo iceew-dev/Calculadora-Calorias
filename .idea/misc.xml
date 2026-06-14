@@ -3,6 +3,7 @@
   <component name="LeiningenProjectsManager">
     <option name="projectFiles">
       <set>
+<<<<<<< HEAD
         <option value="file://$PROJECT_DIR$/Back-end/project.clj" />
       </set>
     </option>
@@ -10,4 +11,11 @@
   <component name="ProjectRootManager" version="2" project-jdk-name="26" project-jdk-type="SimpleJavaSdkType">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
+=======
+        <option value="file://$PROJECT_DIR$/project.clj" />
+      </set>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="26" project-jdk-type="JavaSDK" />
+>>>>>>> b5988586973ade33a7b7d8bd417dc0feca09ed4a
 </project>
